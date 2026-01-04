@@ -3,6 +3,9 @@ data_root: data/IAM_Aachen
 model_name: microsoft/trocr-small-handwritten
 out_dir: saved_models/run1
 log_dir: logs/tb_run1
+grad_ckpt: true
+fp32_ctc: true
+skip_nan: true
 epochs: 20
 batch_size: 6
 lr: 0.0001

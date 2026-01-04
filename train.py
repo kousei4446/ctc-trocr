@@ -62,6 +62,9 @@ def main():
         "model_name": "microsoft/trocr-small-handwritten",
         "out_dir": "out_ctc_best",
         "log_dir": None,
+        "grad_ckpt": False,
+        "fp32_ctc": False,
+        "skip_nan": False,
         "epochs": 20,
         "batch_size": 6,
         "lr": 1e-4,
@@ -163,6 +166,7 @@ def main():
             upsample=args.upsample,
             freeze_encoder=args.freeze_encoder,
             dropout=args.dropout,
+            gradient_checkpointing=args.grad_ckpt,
         ).to(device)
 
         print(f"[info] image: H={args.img_h}, W={args.max_w}  patch={model.patch_size}")
@@ -199,7 +203,17 @@ def main():
                     B, T, C = log_probs.shape
                     input_lengths = torch.full((B,), T, dtype=torch.long, device=device)
 
-                    loss = ctc_loss(log_probs.transpose(0, 1), targets, input_lengths, target_lengths)
+                    if args.fp32_ctc:
+                        loss = ctc_loss(
+                            log_probs.float().transpose(0, 1), targets, input_lengths, target_lengths
+                        )
+                    else:
+                        loss = ctc_loss(log_probs.transpose(0, 1), targets, input_lengths, target_lengths)
+
+                if args.skip_nan and not torch.isfinite(loss):
+                    print("[warn] non-finite loss, skipping step")
+                    optim.zero_grad(set_to_none=True)
+                    continue
 
                 optim.zero_grad(set_to_none=True)
                 scaler.scale(loss).backward()

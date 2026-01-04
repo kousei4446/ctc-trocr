@@ -14,6 +14,7 @@ class TrOCREncoderCTC(nn.Module):
         upsample: int = 1,
         freeze_encoder: bool = False,
         dropout: float = 0.0,
+        gradient_checkpointing: bool = False,
     ):
         super().__init__()
         base = VisionEncoderDecoderModel.from_pretrained(model_name)
@@ -31,6 +32,11 @@ class TrOCREncoderCTC(nn.Module):
         if freeze_encoder:
             for p in self.encoder.parameters():
                 p.requires_grad = False
+
+        if gradient_checkpointing and hasattr(self.encoder, "gradient_checkpointing_enable"):
+            self.encoder.gradient_checkpointing_enable()
+            if hasattr(self.encoder, "config"):
+                self.encoder.config.use_cache = False
 
     def _maybe_resize_pos_embed(self, pixel_values: torch.Tensor):
         embeddings = getattr(self.encoder, "embeddings", None)
