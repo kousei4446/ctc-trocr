@@ -1,7 +1,7 @@
 ﻿mode: train
-data_root: null
+data_root: data/IAM_Aachen
 model_name: microsoft/trocr-small-handwritten
-out_dir: out_ctc_best
+out_dir: saved_models/run1
 log_dir: logs/tb_run1
 epochs: 20
 batch_size: 6
