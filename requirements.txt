@@ -1,0 +1,5 @@
+﻿transformers
+pillow
+tqdm
+pyyaml
+tensorboard
